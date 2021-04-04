@@ -1,4 +1,6 @@
 /*
+ * @author Ryan Benasutti, WPI
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,7 +19,6 @@
 #include "okapi/impl/device/motor/motorGroup.hpp"
 #include "okapi/impl/device/rotarysensor/adiEncoder.hpp"
 #include "okapi/impl/device/rotarysensor/integratedEncoder.hpp"
-#include "okapi/impl/device/rotarysensor/rotationSensor.hpp"
 #include "okapi/impl/util/timeUtilFactory.hpp"
 
 namespace okapi {
@@ -173,27 +174,6 @@ class ChassisControllerBuilder {
    * @param iright The right side sensor.
    * @return An ongoing builder.
    */
-  ChassisControllerBuilder &withSensors(const RotationSensor &ileft, const RotationSensor &iright);
-
-  /**
-   * Sets the sensors. The default sensors are the motor's integrated encoders.
-   *
-   * @param ileft The left side sensor.
-   * @param iright The right side sensor.
-   * @param imiddle The middle sensor.
-   * @return An ongoing builder.
-   */
-  ChassisControllerBuilder &withSensors(const RotationSensor &ileft,
-                                        const RotationSensor &iright,
-                                        const RotationSensor &imiddle);
-
-  /**
-   * Sets the sensors. The default sensors are the motor's integrated encoders.
-   *
-   * @param ileft The left side sensor.
-   * @param iright The right side sensor.
-   * @return An ongoing builder.
-   */
   ChassisControllerBuilder &withSensors(const IntegratedEncoder &ileft,
                                         const IntegratedEncoder &iright);
 
@@ -293,7 +273,7 @@ class ChassisControllerBuilder {
    * @param iturnThreshold The minimum angle turn.
    * @return An ongoing builder.
    */
-  ChassisControllerBuilder &withOdometry(std::shared_ptr<Odometry> iodometry,
+  ChassisControllerBuilder &withOdometry(std::unique_ptr<Odometry> iodometry,
                                          const StateMode &imode = StateMode::FRAME_TRANSFORMATION,
                                          const QLength &imoveThreshold = 0_mm,
                                          const QAngle &iturnThreshold = 0_deg);
@@ -318,7 +298,7 @@ class ChassisControllerBuilder {
    * @param iscales The ChassisScales for the base.
    * @return An ongoing builder.
    */
-  ChassisControllerBuilder &withDimensions(const AbstractMotor::GearsetRatioPair &igearset,
+  ChassisControllerBuilder &withDimensions(const AbstractMotor::gearset &igearset,
                                            const ChassisScales &iscales);
 
   /**
@@ -330,7 +310,7 @@ class ChassisControllerBuilder {
   ChassisControllerBuilder &withMaxVelocity(double imaxVelocity);
 
   /**
-   * Sets the max voltage. The default is `12000`.
+   * Sets the max voltage.
    *
    * @param imaxVoltage The max voltage.
    * @return An ongoing builder.
@@ -474,14 +454,14 @@ class ChassisControllerBuilder {
   TimeUtilFactory closedLoopControllerTimeUtilFactory = TimeUtilFactory();
   TimeUtilFactory odometryTimeUtilFactory = TimeUtilFactory();
 
-  AbstractMotor::GearsetRatioPair gearset{AbstractMotor::gearset::invalid,1.0};
+  AbstractMotor::GearsetRatioPair gearset{AbstractMotor::gearset::invalid};
   ChassisScales driveScales{{1, 1}, imev5GreenTPR};
   bool differentOdomScales{false};
   ChassisScales odomScales{{1, 1}, imev5GreenTPR};
   std::shared_ptr<Logger> controllerLogger = Logger::getDefaultLogger();
 
   bool hasOdom{false}; // Whether odometry was passed
-  std::shared_ptr<Odometry> odometry;
+  std::unique_ptr<Odometry> odometry;
   StateMode stateMode;
   QLength moveThreshold;
   QAngle turnThreshold;
