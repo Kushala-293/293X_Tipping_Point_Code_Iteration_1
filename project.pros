@@ -7,10 +7,13 @@
             "kernel": {
                 "location": "C:\\Users\\adity\\AppData\\Roaming\\PROS\\templates\\kernel@3.4.0",
                 "metadata": {
+                    "allow_online": true,
                     "cold_addr": "58720256",
                     "cold_output": "bin/cold.package.bin",
+                    "force_apply": false,
                     "hot_addr": "125829120",
                     "hot_output": "bin/hot.package.bin",
+                    "kernel_version": "3.3.1",
                     "origin": "pros-mainline",
                     "output": "bin/monolith.bin"
                 },

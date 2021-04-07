@@ -1,7 +1,9 @@
 #include "main.h"
-#include "dev/autonController.h"
+#include "dev/util/autonController.h"
+#include "dev/util/odom.h"
 
 void autonomous() {
+    odomInit();
     switch(getAuton()){
       case 0:
 

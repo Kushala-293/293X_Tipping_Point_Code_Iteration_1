@@ -2,6 +2,7 @@
 #include "dev/util/misc.h"
 #include "dev/control/chassis.h"
 #include "dev/util/displayController.h"
+#include "dev/util/odom.h"
 
 void opcontrol(){
 
@@ -9,9 +10,6 @@ void opcontrol(){
   bool driveSwitch=false;
 
   while(true){
-
-    if(isBeingPressed()==false)
-      setBeingPressed(false);
 
     if(master.get_digital(DIGITAL_A) && !driveSwitch){
       driveState++;
@@ -66,7 +64,10 @@ void opcontrol(){
       RB.move_velocity(-master.get_analog(ANALOG_LEFT_Y) * 1.58 + master.get_analog(ANALOG_RIGHT_X) * 1.58);
     }
 
-     display();
+    if(master.get_digital(DIGITAL_X)){
+           resetEncoders();
+    }
+  
      pros::delay(20);
   }
 }
