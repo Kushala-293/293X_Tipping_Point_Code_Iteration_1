@@ -1,17 +1,25 @@
 #include "main.h"
 
 extern pros::Rotation leftEncoder, rightEncoder, middleEncoder;
+extern pros::Imu inert;
 
-int getLeftEncoderPos();
-int getRightEncoderPos();
-int getMiddleEncoderPos();
+int getL();
+int getM();
+int getR();
 
-double getDeltaLeft();
-double getDeltaRight();
-double getDeltaMiddle();
+int getDL();
+int getDM();
+int getDR();
 
+double getThetaRad();
+double getThetaDeg();
+
+double getX();
+double getY();
+
+void calibrateOdom();
 void resetEncoders();
+void zero();
+void reset();
 
-void odomInit();
-
-void odomUpdate();
+void asyncOdom(void* param);

@@ -3,7 +3,6 @@
 #include "dev/util/odom.h"
 
 void autonomous() {
-    odomInit();
     switch(getAuton()){
       case 0:
 

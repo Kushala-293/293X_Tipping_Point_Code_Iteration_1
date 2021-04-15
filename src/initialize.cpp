@@ -1,6 +1,6 @@
 #include "main.h"
-#include "dev/util/odom.h"
 #include "dev/util/displayController.h"
+#include "dev/util/odom.h"
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -11,10 +11,10 @@
 void initialize() {
   pros::lcd::initialize();
 
-  odomInit();
+  calibrateOdom();
 
-  pros::Task displayTask(asyncDisplay);
-
+   pros::Task displayController(asyncDisplay);
+   pros::Task odomController(asyncOdom);
 }
 
 /**
@@ -22,9 +22,7 @@ void initialize() {
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
-void disabled() {
-
-}
+void disabled() {}
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field

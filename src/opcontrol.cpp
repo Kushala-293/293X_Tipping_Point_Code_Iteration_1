@@ -6,10 +6,13 @@
 
 void opcontrol(){
 
-  int driveState=0;
+  int driveState=1;
   bool driveSwitch=false;
 
   while(true){
+
+    if(isBeingPressed()==false)
+      setBeingPressed(false);
 
     if(master.get_digital(DIGITAL_A) && !driveSwitch){
       driveState++;
@@ -63,11 +66,6 @@ void opcontrol(){
       RF.move_velocity(-master.get_analog(ANALOG_LEFT_Y) * 1.58 + master.get_analog(ANALOG_RIGHT_X) * 1.58);
       RB.move_velocity(-master.get_analog(ANALOG_LEFT_Y) * 1.58 + master.get_analog(ANALOG_RIGHT_X) * 1.58);
     }
-
-    if(master.get_digital(DIGITAL_X)){
-           resetEncoders();
-    }
-  
      pros::delay(20);
   }
 }
