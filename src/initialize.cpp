@@ -1,6 +1,4 @@
 #include "main.h"
-#include "dev/util/displayController.h"
-#include "dev/util/odom.h"
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -11,10 +9,12 @@
 void initialize() {
   pros::lcd::initialize();
 
+  pros::delay(1000);
+
   calibrateOdom();
 
-   pros::Task displayController(asyncDisplay);
-   pros::Task odomController(asyncOdom);
+  pros::Task odomController(asyncOdom);
+  pros::Task displayController(asyncDisplay);
 }
 
 /**

@@ -1,8 +1,4 @@
 #include "main.h"
-#include "dev/util/misc.h"
-#include "dev/control/chassis.h"
-#include "dev/util/displayController.h"
-#include "dev/util/odom.h"
 
 void opcontrol(){
 
@@ -66,6 +62,7 @@ void opcontrol(){
       RF.move_velocity(-master.get_analog(ANALOG_LEFT_Y) * 1.58 + master.get_analog(ANALOG_RIGHT_X) * 1.58);
       RB.move_velocity(-master.get_analog(ANALOG_LEFT_Y) * 1.58 + master.get_analog(ANALOG_RIGHT_X) * 1.58);
     }
-     pros::delay(20);
+
+     pros::delay(50);
   }
 }

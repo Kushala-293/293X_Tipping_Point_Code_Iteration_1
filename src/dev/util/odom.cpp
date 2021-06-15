@@ -1,167 +1,138 @@
 #include "main.h"
-#include "dev/util/odom.h"
-#include "dev/util/misc.h"
 
 pros::Rotation leftEncoder(1);
 pros::Rotation middleEncoder(20);
 pros::Rotation rightEncoder(10);
-
 pros::Imu inert(12);
 
 const double wheelDiameter = 2.75;
-const double wheelTrack = 9.275; // 8.56
+const double wheelTrack = 9.11304; //Big Number->Undershoot  Small Number->Overshoot
 const double middleWheelTrack = 2.75;
 
 bool initOdomRun=true;
 
-int initL=0, initM=0, initR=0;
-int currentL=0, currentM=0, currentR=0;
-double deltaL=0, deltaM=0, deltaR=0, lastL=0, lastM=0, lastR=0;
-double currentInert=0, deltaInert=0, lastInert=0;
-double deltaRad=0, globalRad=0, avgRad=0, globalDeg=0;
-double polarRadius=0, polarTheta=0;
-double offsetX=0, offsetY=0, deltaX=0, deltaY=0, globalX=0, globalY=0;
+odomPos globalPosition;
 
-//Encoder Values
-int getL(){
-  return currentL;
-}
-int getM(){
-  return currentM;
-}
-int getR(){
-  return currentR;
-}
-
-//Change in Encoder Values
-int getDL(){
-  return deltaL;
-}
-int getDM(){
-  return deltaM;
-}
-int getDR(){
-  return deltaR;
-}
-
-//Robot Positioning
-double getThetaRad(){
-  return deltaRad;
-}
-double getX(){
-  return globalX;
-}
-double getY(){
-  return globalY;
-}
+double totalLeft=0, totalMiddle=0, totalRight=0;
 
 //General Functions
 void calibrateOdom(){
   rightEncoder.reverse();
   middleEncoder.reverse();
-  inert.reset();
 
-  resetEncoders();
-}
-void resetEncoders(){
   leftEncoder.reset_position();
   middleEncoder.reset_position();
   rightEncoder.reset_position();
-}
-void zero(){
 
+  inert.reset();
+
+  while(inert.is_calibrating())
+    pros::delay(20);
 }
-void reset();
+
+void resetPosition(odomPos& position){
+  position.x=0;
+  position.y=0;
+  position.a=0;
+  position.lastLeft=0;
+  position.lastMiddle=0;
+  position.lastRight=0;
+  position.lastInert=0;
+}
+
+void setPosition(double x, double y, double theta, odomPos& position){
+  position.x=x;
+  position.y=y;
+  position.a=convertToRad(theta);
+}
+
+void vectorToPolar(odomVector& vector, odomPolar& polar)
+{
+	if (vector.x || vector.y)
+	{
+		polar.magnitude = sqrt(vector.x * vector.x + vector.y * vector.y);
+		polar.angle = atan2(vector.y, vector.x);
+	}
+	else
+		polar.magnitude = polar.angle = 0;
+}
+
+void polarToVector(odomPolar& polar, odomVector& vector)
+{
+	if (polar.magnitude)
+	{
+		vector.x = polar.magnitude * cos(polar.angle);
+		vector.y = polar.magnitude * sin(polar.angle);
+	}
+	else
+		vector.x = vector.y = 0;
+}
+
+float getAngleOfLine(odomLine line)
+{
+	return atan2(line.p2.x - line.p1.x, line.p2.y - line.p1.y);
+}
+
+float getLengthOfLine(odomLine line)
+{
+	float x = line.p2.x - line.p1.x;
+	float y = line.p2.y - line.p1.y;
+	return sqrt(x * x + y * y);
+}
+
+void trackPosition(int currentL, int currentR, int currentM, double currentInert, odomPos& position){
+
+      double xOffset, yOffset;
+      double avgRad, deltaRad, endRad;
+      double deltaL, deltaM, deltaR;
+
+      //Change in Robot Position Vector Since Last Iteration
+      deltaL = ticksToInch(currentL - position.lastLeft,wheelDiameter);
+      deltaM = ticksToInch(currentM - position.lastMiddle,wheelDiameter);
+      deltaR = ticksToInch(currentR - position.lastRight,wheelDiameter);
+      //deltaRad = average(convertToRad(currentInert - position.lastInert),(deltaL - deltaR) / wheelTrack);
+      deltaRad = (deltaL - deltaR) / wheelTrack;
+      totalLeft += deltaL;
+      totalMiddle += deltaM;
+      totalRight += deltaR;
+
+      //Update Last Robot Position Vector
+      position.lastLeft=currentL;
+      position.lastMiddle=currentM;
+      position.lastRight=currentR;
+      position.lastInert=currentInert;
+
+      //Checks if Robot Turned and Calculate Position Offset Accordingly
+      if(deltaRad==0){
+        avgRad = 0;
+        xOffset = deltaM;
+        yOffset = deltaR;
+      }else{
+        avgRad = deltaRad/2;
+        xOffset= 2*sin(avgRad)*(deltaM/deltaRad + middleWheelTrack);
+        yOffset = 2*sin(avgRad)*(deltaR/deltaRad + wheelTrack/2);
+      }
+
+      //Calcualte End Angle of Robot
+      endRad = avgRad + position.a;
+
+      //Update Global Position Vector
+      position.x+=yOffset*sin(endRad);
+      position.y+=yOffset*cos(endRad);
+
+      position.x+=xOffset*cos(endRad);
+      position.y+=xOffset*-sin(endRad);
+
+      position.a+=deltaRad;
+}
 
 //Async Task
 void asyncOdom(void* param){
-  while(!pros::competition::is_autonomous() || pros::competition::is_disabled() ||initOdomRun){
-  initL=leftEncoder.get_position();
-  initM=middleEncoder.get_position();
-  initR=rightEncoder.get_position();
-  pros::delay(50);
-  while(leftEncoder.get_position()-initL!=0){
-    initL=leftEncoder.get_position();
-    pros::delay(20);
-  }
-  while(middleEncoder.get_position()-initM!=0){
-    initM=middleEncoder.get_position();
-    pros::delay(20);
-  }
-  while(rightEncoder.get_position()-initR!=0){
-    initR=rightEncoder.get_position();
-    pros::delay(20);
-  }
-  initOdomRun=false;
-}
   while(true){
-      //Current Encoder Position
-      currentL = leftEncoder.get_position()-initL;
-      currentM = middleEncoder.get_position()-initM;
-      currentR = rightEncoder.get_position()-initR;
-
-      //Change in Encoder Position Since Last Iteration
-      deltaL = ticksToInch(currentL - lastL,wheelDiameter);
-      deltaM = ticksToInch(currentM - lastM,wheelDiameter);
-      deltaR = ticksToInch(currentR - lastR,wheelDiameter);
-
-      //Update Last Encoder Positions
-      lastL = currentL;
-      lastM = currentM;
-      lastR = currentR;
-
-      //Calculate Change in Heading via Inertial Sensor
-      currentInert=inert.get_rotation();
-      deltaInert = currentInert-lastInert;
-      lastInert=currentInert;
-
-      //Calculate Change in Orientation via Odometry
-      deltaRad = (deltaL-deltaR)/wheelTrack;
-
-      //Average Inertial and Odometry Deltas for Accuracy
-      deltaRad = (convertToRad(deltaInert)+deltaRad)/2;
-
-      //Checks if Robot Turned and Update Position Accordingly
-      if(deltaRad==0){
-        offsetX = deltaM;
-        offsetY = deltaR;
-      }else{
-        offsetX = 2*sin(deltaRad/2)*(deltaM/deltaRad + middleWheelTrack);
-        offsetY = 2*sin(deltaRad/2)*(deltaR/deltaRad + wheelTrack/2);
-      }
-
-      //Account for Undefined Conversions
-      if(isnan(offsetX))
-        offsetX=0;
-      if(isnan(offsetY))
-        offsetY=0;
-
-      //Account for Offset Position Vector
-      avgRad= globalRad + deltaRad/2;
-      polarRadius = hypot(offsetX,offsetY);
-      polarTheta = atan2(offsetY,offsetX) - avgRad;
-      deltaX = cos(polarTheta) * polarRadius;
-      deltaY = sin(polarTheta) * polarRadius;
-
-      //Account for Undefined Conversions
-      if(isnan(deltaX))
-        deltaX=0;
-      if(isnan(deltaY))
-        deltaY=0;
-
-      //Update Global Position
-      globalX+=deltaX;
-      globalY+=deltaY;
-
-      //Update Global Orientation
-      globalRad += deltaRad;
-      globalDeg = convertToDeg(globalRad);
-
-      pros::lcd::set_text(2, "(" + std::to_string(currentL) + "," + std::to_string(currentM) + "," + std::to_string(currentR) + ")");
-      pros::lcd::set_text(3, "(" + std::to_string(ticksToInch(currentL,wheelDiameter)) + "," + std::to_string(ticksToInch(currentM,wheelDiameter)) + "," + std::to_string(ticksToInch(currentR,wheelDiameter)) + ")");
-      pros::lcd::set_text(4, "(" + std::to_string(globalX) + ")");
-      pros::lcd::set_text(5, "(" + std::to_string(globalY) + ")");
-      pros::lcd::set_text(6, "(" + std::to_string(globalDeg) + ")");
-      pros::delay(10);
+    trackPosition(leftEncoder.get_position(),rightEncoder.get_position(),middleEncoder.get_position(),inert.get_rotation(),globalPosition);
+    // pros::lcd::set_text(3, "(" + std::to_string(totalLeft) + ")");
+    // pros::lcd::set_text(4, "(" + std::to_string(totalMiddle) + ")");
+    // pros::lcd::set_text(5, "(" + std::to_string(totalRight) + ")");
+    pros::delay(1);
   }
 }

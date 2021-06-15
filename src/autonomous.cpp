@@ -1,11 +1,9 @@
 #include "main.h"
-#include "dev/util/autonController.h"
-#include "dev/util/odom.h"
 
 void autonomous() {
     switch(getAuton()){
       case 0:
-
+        turnToHeading(45, 100, 4, 1);
         break;
       case 1:
 

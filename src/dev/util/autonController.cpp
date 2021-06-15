@@ -1,6 +1,6 @@
-#include "dev/util/autonController.h"
+#include "main.h"
 
-int autonSelection=0;
+static int autonSelection=0;
 int maxAuton=5;
 
 std::string autonDescription;

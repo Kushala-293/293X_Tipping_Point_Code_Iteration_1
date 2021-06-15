@@ -1,7 +1,5 @@
-#include "dev/util/displayController.h"
-#include "dev/util/autonController.h"
-#include "dev/util/misc.h"
-#include "dev/util/odom.h"
+#include "main.h"
+
 
 pros::ADIAnalogIn button('A');
 bool beingPressed = false;
@@ -11,6 +9,10 @@ void display(){
 
   pros::lcd::set_text(0, "Auton Name: " + getAutonName());
   pros::lcd::set_text(1, "Auton Info: " + getAutonDescription());
+  pros::lcd::set_text(3, "X: (" + std::to_string(globalPosition.x) + ")");
+  pros::lcd::set_text(4, "Y: (" + std::to_string(globalPosition.y) + ")");
+  pros::lcd::set_text(5, "A: (" + std::to_string(convertToDeg(globalPosition.a)) + ")");
+
 
   if(button.get_value()<25 && !beingPressed){
     setAuton(getAuton()+1);
@@ -32,7 +34,7 @@ void asyncDisplay(void* param){
 
     display();
 
-    pros::delay(500);
+    pros::delay(250);
   }
 }
 
