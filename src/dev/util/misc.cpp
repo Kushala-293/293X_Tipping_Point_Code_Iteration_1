@@ -12,15 +12,15 @@ double average (double firstTerm, double secondTerm){
   return (firstTerm + secondTerm)/2;
 }
 
-double convertToDeg(double rad){
+float convertToDeg(float rad){
   return rad*(180/M_PI);
 }
 
-double convertToRad(double deg){
+float convertToRad(float deg){
   return deg*(M_PI/180);
 }
 
-double wrapTheta(double rad){
+float wrapTheta(float rad){
   rad = fmod(rad,2*M_PI);
     if (rad < 0)
         rad += 2*M_PI;

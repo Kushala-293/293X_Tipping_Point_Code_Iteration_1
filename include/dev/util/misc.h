@@ -6,7 +6,7 @@ extern pros::Controller master;
 double ticksToInch(int ticks, double wheelDiameter);
 double average (double firstTerm, double secondTerm);
 
-double convertToRad(double deg);
-double convertToDeg(double rad);
+float convertToRad(float deg);
+float convertToDeg(float rad);
 
-double wrapTheta(double rad);
+float wrapTheta(float rad);

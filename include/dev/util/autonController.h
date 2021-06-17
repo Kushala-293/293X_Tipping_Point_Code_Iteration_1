@@ -7,5 +7,5 @@ int getMaxAuton();
 std::string getAutonName();
 std::string getAutonDescription();
 
-
+void runAuton();
 void updateAuton();

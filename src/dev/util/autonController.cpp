@@ -56,3 +56,31 @@ void updateAuton(){
       break;
   }
 }
+
+void runAuton(){
+  switch(autonSelection){
+    case 0:
+      odomVector firstPoint;
+      firstPoint.x=24;
+      firstPoint.y=24;
+      driveToPoint(firstPoint,127,10,3,3);
+      break;
+    case 1:
+
+      break;
+    case 2:
+
+      break;
+    case 3:
+
+      break;
+    case 4:
+
+      break;
+    case 5:
+
+      break;
+    default:
+      break;
+  }
+}

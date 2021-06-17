@@ -9,9 +9,14 @@ void display(){
 
   pros::lcd::set_text(0, "Auton Name: " + getAutonName());
   pros::lcd::set_text(1, "Auton Info: " + getAutonDescription());
-  pros::lcd::set_text(3, "X: (" + std::to_string(globalPosition.x) + ")");
-  pros::lcd::set_text(4, "Y: (" + std::to_string(globalPosition.y) + ")");
+  pros::lcd::set_text(3, "Y: (" + std::to_string(globalPosition.y) + ")");
+  pros::lcd::set_text(4, "X: (" + std::to_string(globalPosition.x) + ")");
   pros::lcd::set_text(5, "A: (" + std::to_string(convertToDeg(globalPosition.a)) + ")");
+
+  if(pros::competition::is_autonomous())
+    pros::lcd::set_text(6, "Autonomous Enabled");
+  else
+    pros::lcd::clear_line(6);
 
 
   if(button.get_value()<25 && !beingPressed){

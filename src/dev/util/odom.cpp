@@ -1,30 +1,29 @@
 #include "main.h"
 
-pros::Rotation leftEncoder(1);
-pros::Rotation middleEncoder(20);
+pros::Rotation leftEncoder(9);
+pros::Rotation middleEncoder(18);
 pros::Rotation rightEncoder(10);
-pros::Imu inert(12);
+pros::Imu inert(21);
 
 const double wheelDiameter = 2.75;
-const double wheelTrack = 9.11304; //Big Number->Undershoot  Small Number->Overshoot
-const double middleWheelTrack = 2.75;
+const double wheelTrack = 5.15625; //Big Number->Smaller Calculated Angle Change->Undershoot  Small Number->Larger Calculated Angle Change->Overshoot
+const double middleWheelTrack = 1.8;
 
 bool initOdomRun=true;
 
 odomPos globalPosition;
 
-double totalLeft=0, totalMiddle=0, totalRight=0;
-
 //General Functions
 void calibrateOdom(){
   rightEncoder.reverse();
-  middleEncoder.reverse();
 
   leftEncoder.reset_position();
   middleEncoder.reset_position();
   rightEncoder.reset_position();
 
   inert.reset();
+
+  resetPosition(globalPosition);
 
   while(inert.is_calibrating())
     pros::delay(20);
@@ -80,54 +79,57 @@ float getLengthOfLine(odomLine line)
 	return sqrt(x * x + y * y);
 }
 
-void trackPosition(int currentL, int currentR, int currentM, double currentInert, odomPos& position){
+void trackPosition(int left, int right, int back, double currentInert, odomPos& position){
+  float L = ticksToInch((left - position.lastLeft),2.75) ; // The amount the left side of the robot moved
+  float R = ticksToInch((right - position.lastRight),2.75) ; // The amount the right side of the robot moved
+  float S = ticksToInch((back - position.lastMiddle),2.75) ; // The amount the back side of the robot moved
+  float I = convertToRad(currentInert-position.lastInert);
 
-      double xOffset, yOffset;
-      double avgRad, deltaRad, endRad;
-      double deltaL, deltaM, deltaR;
+  // Update the last values
+  position.lastLeft = left;
+  position.lastRight = right;
+  position.lastMiddle = back;
+  position.lastInert = currentInert;
 
-      //Change in Robot Position Vector Since Last Iteration
-      deltaL = ticksToInch(currentL - position.lastLeft,wheelDiameter);
-      deltaM = ticksToInch(currentM - position.lastMiddle,wheelDiameter);
-      deltaR = ticksToInch(currentR - position.lastRight,wheelDiameter);
-      //deltaRad = average(convertToRad(currentInert - position.lastInert),(deltaL - deltaR) / wheelTrack);
-      deltaRad = (deltaL - deltaR) / wheelTrack;
-      totalLeft += deltaL;
-      totalMiddle += deltaM;
-      totalRight += deltaR;
+float h; // The hypotenuse of the triangle formed by the middle of the robot on the starting position and ending position and the middle of the circle it travels around
+float i; // Half on the angle that I've traveled
+float h2; // The same as h but using the back instead of the side wheels
+float a = (L - R) / (wheelTrack); // The angle that I've traveled
+if (a)
+{
+float r = R / a; // The radius of the circle the robot travel's around with the right side of the robot
+i = a / 2.0;
+float sinI = sin(i);
+h = ((r + wheelTrack/2) * sinI) * 2.0;
 
-      //Update Last Robot Position Vector
-      position.lastLeft=currentL;
-      position.lastMiddle=currentM;
-      position.lastRight=currentR;
-      position.lastInert=currentInert;
+float r2 = S / a; // The radius of the circle the robot travel's around with the back of the robot
+h2 = ((r2 + middleWheelTrack) * sinI) * 2.0;
+}
+else
+{
+h = R;
+i = 0;
 
-      //Checks if Robot Turned and Calculate Position Offset Accordingly
-      if(deltaRad==0){
-        avgRad = 0;
-        xOffset = deltaM;
-        yOffset = deltaR;
-      }else{
-        avgRad = deltaRad/2;
-        xOffset= 2*sin(avgRad)*(deltaM/deltaRad + middleWheelTrack);
-        yOffset = 2*sin(avgRad)*(deltaR/deltaRad + wheelTrack/2);
-      }
+h2 = S;
+}
+float p = i + position.a; // The global ending angle of the robot
+float cosP = cos(p);
+float sinP = sin(p);
 
-      //Calcualte End Angle of Robot
-      endRad = avgRad + position.a;
+// Update the global position
+position.y += h * cosP;
+position.x += h * sinP;
 
-      //Update Global Position Vector
-      position.x+=yOffset*sin(endRad);
-      position.y+=yOffset*cos(endRad);
+position.y += h2 * -sinP; // -sin(x) = sin(-x)
+position.x += h2 * cosP; // cos(x) = cos(-x)
 
-      position.x+=xOffset*cos(endRad);
-      position.y+=xOffset*-sin(endRad);
+position.a += a;
 
-      position.a+=deltaRad;
 }
 
 //Async Task
 void asyncOdom(void* param){
+  resetPosition(globalPosition);
   while(true){
     trackPosition(leftEncoder.get_position(),rightEncoder.get_position(),middleEncoder.get_position(),inert.get_rotation(),globalPosition);
     // pros::lcd::set_text(3, "(" + std::to_string(totalLeft) + ")");
