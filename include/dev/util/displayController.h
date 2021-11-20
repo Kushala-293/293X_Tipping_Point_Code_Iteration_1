@@ -1,7 +1,5 @@
 #include "main.h"
 
-extern pros::ADIAnalogIn button;
-
 void display();
 
 void asyncDisplay(void* param);

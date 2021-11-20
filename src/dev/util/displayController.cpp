@@ -1,7 +1,7 @@
 #include "main.h"
 
 
-pros::ADIAnalogIn button('A');
+
 bool beingPressed = false;
 bool initDisplayRun=true;
 
@@ -9,9 +9,13 @@ void display(){
 
   pros::lcd::set_text(0, "Auton Name: " + getAutonName());
   pros::lcd::set_text(1, "Auton Info: " + getAutonDescription());
-  pros::lcd::set_text(3, "Y: (" + std::to_string(globalPosition.y) + ")");
-  pros::lcd::set_text(4, "X: (" + std::to_string(globalPosition.x) + ")");
-  pros::lcd::set_text(5, "A: (" + std::to_string(convertToDeg(globalPosition.a)) + ")");
+  pros::lcd::set_text(3, "Pot Value: (" + std::to_string(skewerPot.get_value()) + ")");
+  pros::lcd::set_text(4, "Lift Value: (" + std::to_string(liftPot.get_value()) + ")");
+  if(button.get_value()<20)
+    pros::lcd::set_text(5, "Button: (Down)");
+  else
+      pros::lcd::set_text(5, "Button: (Up)");
+
 
   if(pros::competition::is_autonomous())
     pros::lcd::set_text(6, "Autonomous Enabled");

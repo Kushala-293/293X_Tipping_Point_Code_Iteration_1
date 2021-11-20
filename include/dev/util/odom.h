@@ -1,6 +1,6 @@
 #include "main.h"
 
-extern pros::Rotation leftEncoder, rightEncoder, middleEncoder;
+extern pros::Rotation leftEncoder, rightEncoder;
 extern pros::Imu inert;
 
 typedef struct _pos

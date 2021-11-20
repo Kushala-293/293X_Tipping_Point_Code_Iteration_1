@@ -1,9 +1,8 @@
 #include "main.h"
 
 pros::Rotation leftEncoder(9);
-pros::Rotation middleEncoder(18);
-pros::Rotation rightEncoder(10);
-pros::Imu inert(21);
+pros::Rotation rightEncoder(6);
+pros::Imu inert(14);
 
 const double wheelDiameter = 2.75;
 const double wheelTrack = 5.15625; //Big Number->Smaller Calculated Angle Change->Undershoot  Small Number->Larger Calculated Angle Change->Overshoot
@@ -18,7 +17,6 @@ void calibrateOdom(){
   rightEncoder.reverse();
 
   leftEncoder.reset_position();
-  middleEncoder.reset_position();
   rightEncoder.reset_position();
 
   inert.reset();
@@ -131,7 +129,7 @@ position.a += a;
 void asyncOdom(void* param){
   resetPosition(globalPosition);
   while(true){
-    trackPosition(leftEncoder.get_position(),rightEncoder.get_position(),middleEncoder.get_position(),inert.get_rotation(),globalPosition);
+    trackPosition(leftEncoder.get_position(),rightEncoder.get_position(),0,inert.get_rotation(),globalPosition);
     // pros::lcd::set_text(3, "(" + std::to_string(totalLeft) + ")");
     // pros::lcd::set_text(4, "(" + std::to_string(totalMiddle) + ")");
     // pros::lcd::set_text(5, "(" + std::to_string(totalRight) + ")");

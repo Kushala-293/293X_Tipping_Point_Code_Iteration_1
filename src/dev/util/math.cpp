@@ -1,7 +1,5 @@
 #include "main.h"
 
-pros::Controller master(pros::E_CONTROLLER_MASTER);
-
 double ticksToInch(int ticks, double wheelDiameter){
   double rotations = (double)(ticks)/36000;
   double travelDistance = rotations*wheelDiameter*M_PI;

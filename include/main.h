@@ -77,14 +77,30 @@ extern "C"
 /**
  * You can add C++-only headers here
  */
- #include "dev/util/misc.h"
- #include "dev/util/odom.h"
+ #include "dev/control/chassis.h"
+ #include "dev/control/controlManager.h"
+ #include "dev/control/misc.h"
+ #include "dev/control/skewer.h"
+ #include "dev/control/tilter.h"
+
  #include "dev/util/autonController.h"
  #include "dev/util/displayController.h"
- #include "dev/util/misc.h"
- #include "dev/control/chassis.h"
+ #include "dev/util/math.h"
+ #include "dev/util/odom.h"
+ 
+
 
 //#include <iostream>
 #endif
 
 #endif // _PROS_MAIN_H_
+
+
+
+
+
+
+
+
+
+//

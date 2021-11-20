@@ -60,10 +60,10 @@ void updateAuton(){
 void runAuton(){
   switch(autonSelection){
     case 0:
-      odomVector firstPoint;
-      firstPoint.x=24;
-      firstPoint.y=24;
-      driveToPoint(firstPoint,127,10,3,3);
+      // odomVector firstPoint;
+      // firstPoint.x=24;
+      // firstPoint.y=24;
+      // driveToPoint(firstPoint,45,10,1,1);
       break;
     case 1:
 

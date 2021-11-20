@@ -9,12 +9,18 @@
 void initialize() {
   pros::lcd::initialize();
 
-  pros::delay(1000);
+  pros::delay(500);
 
   calibrateOdom();
 
-  pros::Task odomController(asyncOdom);
-  pros::Task displayController(asyncDisplay);
+  pros::Task dispTask (asyncDisplay);
+  pros::Task skewerTask (asyncSkewer);
+
+  baseHeight=liftPot.get_value();
+  setTargetHeight(baseHeight);
+
+  skewerLift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  master.rumble("...");
 }
 
 /**
